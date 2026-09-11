@@ -1,0 +1,47 @@
+=========================================================
+SCANNER DIFF: GRYPE vs. TRIVY (CRITICAL SEVERITY ONLY)
+Target: nginx:1.25-bookworm
+=========================================================
+
+[ OVERLAP ] - Flagged as CRITICAL by BOTH scanners:
+---------------------------------------------------------
+CVE-2025-0838   (libabsl)
+CVE-2023-6879   (libaom3)
+CVE-2024-5171   (libaom3)
+CVE-2025-48174  (libavif15)
+CVE-2024-45491  (libexpat1)
+CVE-2024-45492  (libexpat1)
+CVE-2026-33845  (libgnutls30)
+CVE-2026-42010  (libgnutls30)
+CVE-2024-37371  (libgssapi-krb5-2 / libkrb5-3)
+CVE-2024-56171  (libxml2)
+CVE-2026-6653   (libxml2)
+CVE-2026-31789  (libssl3 / openssl)
+CVE-2026-13221  (perl-base)
+CVE-2026-42496  (perl-base)
+CVE-2026-8376   (perl-base)
+
+[ TRIVY ONLY ] - Flagged CRITICAL by Trivy, ignored/downgraded by Grype:
+---------------------------------------------------------
+CVE-2023-45853  (zlib1g)
+
+[ GRYPE ONLY ] - Flagged CRITICAL by Grype, ignored/downgraded by Trivy:
+---------------------------------------------------------
+CVE-2026-42533  (nginx) *** NGINX CORE VULNERABILITY ***
+CVE-2025-15467  (libssl3 / openssl)
+CVE-2024-5535   (libssl3 / openssl)
+CVE-2026-34182  (libssl3 / openssl)
+CVE-2026-75803  (libssl3 / openssl)
+CVE-2025-49796  (libxml2)
+CVE-2025-49794  (libxml2)
+CVE-2026-10536  (curl / libcurl4)
+CVE-2026-19931  (curl / libcurl4)
+CVE-2026-11856  (curl / libcurl4)
+CVE-2026-18924  (curl / libcurl4)
+CVE-2026-8924   (curl / libcurl4)
+CVE-2026-8927   (curl / libcurl4)
+CVE-2026-5450   (libc-bin / libc6)
+CVE-2026-7598   (libssh2-1)
+CVE-2026-52490  (libtiff6)
+CVE-2026-12087  (perl-base)
+CVE-2026-57433  (perl-base)
