@@ -1,0 +1,66 @@
+=========================================================
+RESCAN: echo-nginx:1.25-bookworm-patched vs. baseline nginx:1.25-bookworm
+=========================================================
+
+Critical-severity match counts (raw grep of scanner output, not deduped):
+                    baseline   patched
+  trivy CRITICAL:      15         3
+  grype Critical:      48        22
+
+Critical CVE IDs present in the baseline (grype) that are GONE in the patched image:
+  CVE-2023-6879     (libaom3)
+  CVE-2024-37371    (libgssapi-krb5-2 / libkrb5-3)
+  CVE-2024-45491    (libexpat1)
+  CVE-2024-45492    (libexpat1)
+  CVE-2024-5171     (libaom3)
+  CVE-2024-5535     (libssl3 / openssl)
+  CVE-2024-56171    (libxml2)
+  CVE-2025-0838     (libabsl)
+  CVE-2025-15467    (libssl3 / openssl)
+  CVE-2025-48174    (libavif15)
+  CVE-2025-49794    (libxml2)
+  CVE-2025-49796    (libxml2)
+  CVE-2026-31789    (libssl3 / openssl)   <- our version-bump remediation
+  CVE-2026-33845    (libgnutls30)
+  CVE-2026-34182    (libssl3 / openssl)
+  CVE-2026-42010    (libgnutls30)
+  CVE-2026-52490    (libtiff6)
+  CVE-2026-6653     (libxml2)
+  CVE-2026-7598     (libssh2-1)
+
+No new CRITICAL CVEs introduced (comm -13 against the sorted ID sets: empty).
+
+Why so many disappeared, not just CVE-2026-31789:
+  Most of the above (libaom3, libavif15, libabsl, libgnutls30, libxml2,
+  libtiff6, libssh2-1, libexpat1, libgssapi-krb5-2/libkrb5-3) are pulled in
+  by nginx-module-{xslt,geoip,image-filter,njs} and their dependency trees
+  in the ORIGINAL image. Our build only compiles/installs the core `nginx`
+  package (see README.md "Image size"), so none of that dependency tree is
+  present at all. This is the "removing components" bonus the assignment
+  mentions -- it doesn't count toward the 2-CVE requirement, it's just a
+  side effect of a smaller image, called out here for honesty (the
+  before/after CVE count looks better than the 2 CVEs we actually engineered
+  a fix for).
+
+  CVE-2026-31789 disappearing is the one that reflects the version-bump
+  remediation:  libssl3/openssl 3.0.11-1~deb12u2 -> 3.0.20-1~deb12u2.
+
+CVE-2026-42533 (our backport target) status:
+  - Not flagged by Trivy in baseline OR patched (Trivy's DB never matched
+    nginx against this CVE at all -- see triage/trivy-grype-diff.txt,
+    "GRYPE ONLY" section from the original triage).
+  - Still flagged by Grype in the patched image:
+      nginx   1.25.5-1~bookworm   deb   CVE-2026-42533   Critical
+    This is the exact behavior the assignment's heads-up describes: Trivy
+    and Grype match by package name + upstream version string, and our
+    package is still versioned 1.25.5-1~bookworm (a source-level backport,
+    not a version bump), so the scanner has no way to know the vulnerable
+    code was patched out.
+  - See vex/CVE-2026-42533.openvex.json and the "VEX" section of README.md
+    for how this is resolved for VEX-aware scanners.
+
+Raw scan output:
+  triage/patched-trivy.txt              trivy image echo-nginx:1.25-bookworm-patched
+  triage/patched-grype.txt              grype echo-nginx:1.25-bookworm-patched
+  triage/patched-grype-with-vex.txt     grype ... --vex vex/CVE-2026-42533.openvex.json
+  triage/patched-trivy-with-vex.txt     trivy image --vex vex/CVE-2026-42533.openvex.json ...
