@@ -16,6 +16,13 @@ Steps taken and explanations are also included here, and were updated with the c
     - Backporting a system library like curl or perl would require system compilation to patch.
     - Since I'm going to compile nginx from source anyways, it would serve as a good target.
 
+## Per-CVE table
+
+| CVE | Severity | Library | Fix method | Evidence |
+|---|---|---|---|---|
+| CVE-2026-31789 | Critical | openssl / libssl3 | Version bump: `3.0.11-1~deb12u2` → `3.0.20-1~deb12u2` | `triage/baseline-trivy.txt`, `triage/rescan-diff.txt` (gone from both scanners post-fix) |
+| CVE-2026-42533 | Critical | nginx (core script/complex-value engine) | Backport: upstream commits [`28219209`](https://github.com/nginx/nginx/commit/28219209e0b4f9e155fd8bd91ab81b8ac30628f2) + [`b7675404`](https://github.com/nginx/nginx/commit/b767540492e8c79a58bc26034d3bab2f708b7bd1) applied onto 1.25.5 | `triage/baseline-grype-critical.txt`, [vex/CVE-2026-42533.openvex.json](vex/CVE-2026-42533.openvex.json) |
+
 ## Steps
 
 - First, generated both trivy and grype baselines without any filtering
@@ -78,3 +85,10 @@ python3 test/compat_test.py
 trivy image echo-nginx:1.25-bookworm-patched > triage/patched-trivy.txt
 grype echo-nginx:1.25-bookworm-patched > triage/patched-grype.txt
 ```
+
+## Residual risk assessment
+
+- **CVE-2026-42533 isn't fully closed.** Upstream's real fix is 5 commits; I backported the 2 that close the actual heap overflow (`28219209` + `b7675404`) and left out 3 that harden more specific issues.
+- **Every other CVE in the baseline scan is still present** — only the 2 selected CVEs were fixed end-to-end, per the assignment's requirements. See `triage/baseline-trivy.txt` / `triage/baseline-grype.txt` for the rest.
+- **Scanners still flag CVE-2026-42533 without the VEX applied** — Trivy/Grype match by package name + version string, and the package is still `1.25.5-1~bookworm`, so a scan run without `--vex vex/CVE-2026-42533.openvex.json` will show it as unfixed even though the code is patched. Anyone consuming this image needs to know to apply the VEX file.
+- **Compatibility test scope**: `test/compat_test.py` covers static content, and error paths. It does not cover TLS, the mail/stream modules, WebSocket upgrades, or anything needing a real upstream backend (`proxy_pass`, `fastcgi_pass`) — those would need a second container/service in the test module.
