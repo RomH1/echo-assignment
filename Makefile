@@ -29,9 +29,10 @@ image: build-deb
 	@echo "Built $(IMAGE_TAG)"
 	@docker image inspect $(IMAGE_TAG) --format 'Size: {{.Size}} bytes'
 
-test:
-	@echo "test/ not implemented yet (see README.md Residual risk)" >&2
-	@exit 1
+## Boots nginx:1.25-bookworm and the image built above as separate
+## containers with the same mounted config, and diffs their HTTP behavior.
+test: image
+	python3 test/compat_test.py
 
 clean:
 	rm -rf dist
