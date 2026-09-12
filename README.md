@@ -26,6 +26,8 @@ Steps taken and explanations are also included here, and were updated with the c
 - For the version bump fix, using Claude Code, generated a dockerfile and containerfile which both run apt-get for the fixed libssl3 version.
 - Generated makefile using Claude Code and verified the patch.
 - Added .gitignore for the dist directory
+- Rescanned the built image with trivy and grype, diffed against the baseline (`triage/rescan-diff.txt`).
+- Using Claude Code, generated an OpenVEX document for CVE-2026-42533 (`vex/CVE-2026-42533.openvex.json`), re-ran grype with `--vex` to confirm the CVE actually drops out of the report.
 
 
 ## Build instructions
@@ -33,4 +35,11 @@ Steps taken and explanations are also included here, and were updated with the c
 ```bash
 make build-deb   # build/Dockerfile: clean debian:bookworm-slim -> dist/*.deb
 make image       # Containerfile: install the .deb -> echo-nginx:1.25-bookworm-patched
+```
+
+## Rescan and VEX
+
+```bash
+trivy image echo-nginx:1.25-bookworm-patched > triage/patched-trivy.txt
+grype echo-nginx:1.25-bookworm-patched > triage/patched-grype.txt
 ```
